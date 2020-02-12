@@ -28,8 +28,6 @@ if token == TOKEN_NOT_FOUND
 end
 appID = appID[6..appID.length]
 
-
-
 # Creates the bot with a token/application ID generated from your Discord
 # Developer Portal.
 bot = Discordrb::Bot.new token: token
