@@ -38,24 +38,31 @@ puts "\nInvite the bot to your server: #{bot.invite_url}\n\n"
 ## is run.
 
 # The /start command. Starts the default server if no server name is specified.
+# @param server the name of the droplet to launch
 bot.command :start do |event, server|
     
+    # Prevent using the /start command if the server is already running
     if isRunning
        break
     end
     
+    # Checks to see if the user has specified a custom droplet to start
     if server == nil
         event.respond("Starting Default Server")
     else
         event.respond("Starting " << server)
     end
     isRunning = true
-    bot.away
+    bot.update_status("idle", "Server Startup", nil, 0, false, 3)
+    # Insert DigitalOcean start commands here
+    return nil
 end
 
 bot.command :stop do |event|
     event.respond("Stopping Server...")
-    bot.dnd
+    bot.update_status("idle", "Server Shutdown", nil, 0, false, 3)
+    # Insert DigitalOcean stop commands here
+    return nil
 end
 
 ### Bot Post Launch
@@ -64,6 +71,7 @@ end
 
 bot.run(true)
 
-bot.dnd
+# last int is status type. 0 - Playing, 1 - Streaming, 2 - Listening, 3 - Watching
+bot.update_status("dnd", "Offline Server", nil, 0, false, 3)
 
 bot.sync
