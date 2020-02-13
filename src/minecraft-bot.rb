@@ -2,14 +2,18 @@
 require 'discordrb'
 require 'droplet_kit'
 
+# The default string in token.txt when the user has not yet added their custom token
 TOKEN_NOT_FOUND = "token=INSERT DISCORD BOT TOKEN HERE"
-APPID_NOT_FOUND = "appID=INSERT APPLICATION ID HERE"
+
+# Specifies whether there is currently a server online
+isRunning = false
 
 # Generates empty token/application ID files if they do not already exist
-if !File.exist?("token.txt") or !File.exist?("appID.txt")
+if !File.exist?("token.txt")
     File.write("token.txt", TOKEN_NOT_FOUND)
-    File.write("appID.txt", APPID_NOT_FOUND)
-    puts("Files have been created to store your bot's unique token and application ID. \nPlease place the necessary information into those files.")
+    puts("A file has been created to store your bot's unique token.")
+    puts("This token can be found within your Discord Dev Portal.")
+    puts("Please insert it into token.txt before continuing")
 end
 
 # Reads your specific application ID/token from their individual files
@@ -21,22 +25,45 @@ if token == TOKEN_NOT_FOUND
 end
 token = token[6..token.length]
 
-appID = File.read("appID.txt")
-if token == TOKEN_NOT_FOUND
-    puts("Please insert your bot's Application ID into appid.txt before continuing.")
-    puts("This token can be found within your Discord Dev Portal.")
-    return
-end
-appID = appID[6..appID.length]
-
 # Creates the bot with a token/application ID generated from your Discord
 # Developer Portal.
-bot = Discordrb::Bot.new token: token
+bot = Discordrb::Commands::CommandBot.new token: token, prefix: '/'
 
 # Prompt to invite the bot to your server if necessary
-puts "Invite the bot to your server:" # {bot.invite_url}"
+puts "\nInvite the bot to your server: #{bot.invite_url}\n\n"
 
-bot.message(content: '/start') do |event|
-    event.respond 'Server Starting'
+
+### Bot Setup
+## Bot commands are created here, and bot settings are specified before it
+## is run.
+
+# The /start command. Starts the default server if no server name is specified.
+bot.command :start do |event, server|
+    
+    if isRunning
+       break
+    end
+    
+    if server == nil
+        event.respond("Starting Default Server")
+    else
+        event.respond("Starting " << server)
+    end
+    isRunning = true
+    bot.away
 end
-bot.run
+
+bot.command :stop do |event|
+    event.respond("Stopping Server...")
+    bot.dnd
+end
+
+### Bot Post Launch
+## Methods that need to be called on the bot after it has established a
+## connection to Discord are listed here.
+
+bot.run(true)
+
+bot.dnd
+
+bot.sync
