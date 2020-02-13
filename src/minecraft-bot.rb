@@ -1,5 +1,6 @@
 # This bot manages a specified Minecraft server hosted on DigitalOcean.
 require 'discordrb'
+require 'droplet_kit'
 
 TOKEN_NOT_FOUND = "token=INSERT DISCORD BOT TOKEN HERE"
 APPID_NOT_FOUND = "appID=INSERT APPLICATION ID HERE"
