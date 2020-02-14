@@ -1,12 +1,20 @@
 # This bot manages a specified Minecraft server hosted on DigitalOcean.
 require 'discordrb'
 require 'droplet_kit'
+require_relative 'do_integrator'
 
 # The default string in token.txt when the user has not yet added their custom token
 TOKEN_NOT_FOUND = "token=INSERT DISCORD BOT TOKEN HERE"
 
 # Specifies whether there is currently a server online
 isRunning = false
+
+# DigitalOcean DropletKit client
+doclient = DO_INTEGRATOR.new
+
+if doclient == nil
+   return
+end
 
 # Generates empty token/application ID files if they do not already exist
 if !File.exist?("token.txt")
