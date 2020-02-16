@@ -83,7 +83,7 @@ bot.command :start do |event, server|
     # access through their API for a matching name.
     doclient.volumes.all.each {
         |x|
-        if x.name == config.default_server
+        if x.name == volume_name
            volume_id = x.id
            break
         end
@@ -101,8 +101,10 @@ bot.command :start do |event, server|
     }
 
     # Creates a droplet using information from the config file. Embeds all SSH
-    # keys present in your DigitalOcean account into the droplet by default.
+    # keys containing "minecraft" in their name.
     # It also attaches the volume containing the minecraft server files.
+    # The contents of startup_script.txt are uploaded and run as soon as the
+    # droplet boots. It is what makes the minecraft server start.
     droplet = DropletKit::Droplet.new(
       name: config.droplet_name,
       region: config.server_region,
@@ -110,9 +112,17 @@ bot.command :start do |event, server|
       image: config.os_image,
       ssh_keys: ssh_key_list,
       tags: ["minecraft-bot"],
+      user_data: config.startup_script(volume_name),
       volumes: [volume_id]
     )
-    doclient.droplets.create(droplet)
+    droplet = doclient.droplets.create(droplet)
+    
+    # Finds and prints the IPv4 address of the server to chat
+    net = doclient.droplets.find(id: droplet.id).networks.v4[0]
+    event.respond("**Server IP:** #{net.ip_address}")
+    
+    sleep(30)
+    bot.update_status("online", "0 Players Online", nil, 0, false, 3)
     
     return nil
 end

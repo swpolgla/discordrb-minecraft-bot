@@ -5,6 +5,7 @@ class CONFIG_MANAGER
     
     CONFIG_FILE_NAME = "config.txt"
     FRESH_CONFIG_FILE = "Droplet_Name=minecraft-bot-droplet\nServer_Region=nyc3\nDroplet_Specs=s-1vcpu-2gb\nOS_Image=ubuntu-18-04-x64\nDefault_Server=minecraft-bot-default"
+    STARTUP_SCRIPT_FILE_NAME = "startup_script.txt"
     
     @config_data = nil
     
@@ -30,7 +31,6 @@ class CONFIG_MANAGER
         @config_data[2] = @config_data[2][14..@config_data[2].length - 2]
         @config_data[3] = @config_data[3][9..@config_data[3].length - 2]
         @config_data[4] = @config_data[4][15..@config_data[4].length - 1]
-        puts(@config_data)
         return self
     end
     
@@ -60,4 +60,11 @@ class CONFIG_MANAGER
         return @config_data[4]
     end
     
+    # Parses startup_script.txt into a string and substitutes the correct volume
+    # name into the commands that mount the storage volume with the server files.
+    def startup_script(volume_name)
+       script = File.read(STARTUP_SCRIPT_FILE_NAME)
+       script = script.gsub("{VOLUME_NAME}", volume_name)
+       return script
+    end
 end
