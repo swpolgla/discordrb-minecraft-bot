@@ -25,11 +25,12 @@ class CONFIG_MANAGER
             
         # This strips out the labels from each line, leaving only the data.
         # It's an ugly way of accomplishing this task but it works.
-        @config_data[0] = @config_data[0][13..@config_data[0].length]
-        @config_data[1] = @config_data[1][14..@config_data[1].length]
-        @config_data[2] = @config_data[2][14..@config_data[2].length]
-        @config_data[3] = @config_data[3][9..@config_data[3].length]
-        @config_data[4] = @config_data[4][15..@config_data[4].length]
+        @config_data[0] = @config_data[0][13..@config_data[0].length - 2]
+        @config_data[1] = @config_data[1][14..@config_data[1].length - 2]
+        @config_data[2] = @config_data[2][14..@config_data[2].length - 2]
+        @config_data[3] = @config_data[3][9..@config_data[3].length - 2]
+        @config_data[4] = @config_data[4][15..@config_data[4].length - 1]
+        puts(@config_data)
         return self
     end
     

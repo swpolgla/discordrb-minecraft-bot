@@ -14,7 +14,7 @@ class DO_INTEGRATOR
     
     # Initializes and returns a DropletKit client to access the DO api from.
     # @return nil if a valid API token cannot be found or hasn't been provided
-    def initialize
+    def create_client
         @token = readToken
         
         if @token == TOKEN_NOT_FOUND or @token == nil

@@ -16,11 +16,12 @@ isRunning = false
 config = CONFIG_MANAGER.new
 
 # DigitalOcean DropletKit client
-doclient = DO_INTEGRATOR.new
+doclient = DO_INTEGRATOR.new.create_client
 
 if doclient == nil
    return
 end
+
 
 # Generates empty token/application ID files if they do not already exist
 if !File.exist?(DISCORD_API_TOKEN_FILE_NAME)
@@ -62,15 +63,57 @@ bot.command :start do |event, server|
        break
     end
     
-    # Checks to see if the user has specified a custom droplet to start
+    # Checks to see if the user has specified a custom volume to load
     if server == nil
-        event.respond("Starting Default Server")
+        event.respond("Starting Default Server...")
     else
-        event.respond("Starting " << server)
+        event.respond("Starting " << server << "...")
     end
     isRunning = true
     bot.update_status("idle", "Server Startup", nil, 0, false, 3)
-    # Insert DigitalOcean start commands here
+    
+    # Begin creating droplet
+    volume_name = config.default_server
+    unless server == nil
+        volume_name = server
+    end
+    volume_id = nil
+    # Currently it isn't possible to request a specific volume by name using the
+    # DigitalOcean api. This works around it by scanning every volume the bot can
+    # access through their API for a matching name.
+    doclient.volumes.all.each {
+        |x|
+        if x.name == config.default_server
+           volume_id = x.id
+           break
+        end
+    }
+    
+    # Searches all SSH keys on your Digital Ocean account for the word
+    # "minecraft" in their name and stores them in an array. These SSH keys will
+    # be embedded into the droplet.
+    ssh_key_list = Array[]
+    doclient.ssh_keys.all.each {
+        |x|
+        if x.name.include? "minecraft"
+           ssh_key_list.push(x.fingerprint)
+        end
+    }
+
+    # Creates a droplet using information from the config file. Embeds all SSH
+    # keys present in your DigitalOcean account into the droplet by default.
+    # It also attaches the volume containing the minecraft server files.
+    droplet = DropletKit::Droplet.new(
+      name: config.droplet_name,
+      region: config.server_region,
+      size: config.droplet_specs,
+      image: config.os_image,
+      ssh_keys: ssh_key_list,
+      tags: ["minecraft-bot"],
+      volumes: [volume_id]
+    )
+    doclient.droplets.create(droplet)
+    
     return nil
 end
 
