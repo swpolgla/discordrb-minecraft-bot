@@ -5,7 +5,7 @@ require 'droplet_kit'
 class DO_INTEGRATOR
     
     # The name of the file that stores the DigitalOcean API access token
-    DO_TOKEN_FILE_NAME = "token_do.txt"
+    DO_TOKEN_FILE_NAME = "config/token_do.txt"
     
     # The default string in token_DO.txt when the user has not yet added their custom token
     TOKEN_NOT_FOUND = "token=INSERT DIGITALOCEAN API TOKEN HERE"
@@ -27,6 +27,8 @@ class DO_INTEGRATOR
         
     end
     
+    # Reads your DigitalOcean API token from a file and returns it. Creates a
+    # blank file in the event one doesn't exist.
     def readToken
         # Generates an empty API key file if one does not exist.
         if !File.exist?(DO_TOKEN_FILE_NAME)

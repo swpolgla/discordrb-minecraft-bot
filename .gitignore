@@ -1,5 +1,4 @@
-/src/token.txt
-/src/appID.txt
+/src/config/token.txt
 .DS_Store
-/src/token_DO.txt
-/src/config.txt
+/src/config/token_DO.txt
+/src/config/config.txt

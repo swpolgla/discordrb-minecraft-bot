@@ -4,7 +4,7 @@ require 'droplet_kit'
 require_relative 'do_integrator'
 require_relative 'config_manager'
 
-DISCORD_API_TOKEN_FILE_NAME = "token.txt"
+DISCORD_API_TOKEN_FILE_NAME = "config/token.txt"
 
 # The default string in token.txt when the user has not yet added their custom token
 TOKEN_NOT_FOUND = "token=INSERT DISCORD BOT TOKEN HERE"
@@ -34,7 +34,7 @@ if !File.exist?(DISCORD_API_TOKEN_FILE_NAME)
 end
 
 # Reads your specific application ID/token from their individual files
-token = File.read("token.txt")
+token = File.read(DISCORD_API_TOKEN_FILE_NAME)
 if token == TOKEN_NOT_FOUND
     puts("Please insert your bot's unique token into token.txt before continuing.")
     puts("This token can be found within your Discord Dev Portal.")
@@ -47,8 +47,9 @@ token = token[6..token.length]
 bot = Discordrb::Commands::CommandBot.new token: token, prefix: '/'
 
 # Prompt to invite the bot to your server if necessary
+puts("------------------------------------------------------------")
 puts "\nInvite the bot to your server: #{bot.invite_url}\n\n"
-
+puts("------------------------------------------------------------")
 
 ### Bot Setup
 ## Bot commands are created here, and bot settings are specified before it
@@ -71,6 +72,7 @@ bot.command :start do |event, server|
     end
     isRunning = true
     bot.update_status("idle", "Server Startup", nil, 0, false, 3)
+    
     
     # Begin creating droplet
     volume_name = config.default_server
@@ -122,12 +124,16 @@ bot.command :start do |event, server|
     event.respond("**Server IP:** #{net.ip_address}")
     event.respond("Please be aware that the server may take several minutes to finish starting up. Your Minecraft client might say the server is using an 'old' version of the game during this time.")
     
-    sleep(30)
+    sleep(45)
     bot.update_status("online", "0 Players Online", nil, 0, false, 3)
     
     return nil
 end
 
+# Sends a shutdown signal to the droplet that is currently running. This will
+# trigger a stop command on the minecraft server, and then gracefully shut down
+# the droplet. After 20 seconds have passed the droplet is destroyed, along with
+# any files not stored on the server data volume.
 bot.command :stop do |event|
     
     unless isRunning
@@ -138,10 +144,7 @@ bot.command :stop do |event|
     
     event.respond("Stopping Server...")
     bot.update_status("idle", "Server Shutdown", nil, 0, false, 3)
-    
-    # Sends a shutdown signal to the droplet that is currently running.
-    # This will trigger a stop command on the minecraft server, and then
-    # gracefully shut down the droplet.
+
     doclient.droplet_actions.shutdown_for_tag(tag_name: "minecraft-bot")
     
     sleep(20)
@@ -160,11 +163,16 @@ bot.command :reset do |event|
     end
    
    event.respond("Resetting server instance...")
-   bot.update_status("Server Reset in Progress", "Server Shutdown", nil, 0, false, 3)
+   bot.update_status("away", "Server Reset in Progress...", nil, 0, false, 3)
    
-   doclient.droplet_actions.power_cycle_for_tag(tag_name: "minecraft-bot")
+   doclient.droplets.all(tag_name: "minecraft-bot").each {
+       |x|
+       doclient.droplet_actions.reboot(droplet_id: x.id)
+   }
    sleep(30)
    bot.update_status("online", "0 Players Online", nil, 0, false, 3)
+   
+   return nil
 end
 
 ### Bot Post Launch
