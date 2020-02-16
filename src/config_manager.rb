@@ -1,4 +1,6 @@
-# This class manages reading the config file.
+# This class manages reading the config file. This config file is strictly
+# for configuring the droplets created by the bot. API access tokens are stored
+# in separate files.
 class CONFIG_MANAGER
     
     CONFIG_FILE_NAME = "config.txt"
@@ -10,10 +12,12 @@ class CONFIG_MANAGER
     def initialize
         unless File.exist?(CONFIG_FILE_NAME)
             File.write(CONFIG_FILE_NAME, FRESH_CONFIG_FILE)
+            puts("\n------------------------------------------------------------")
             puts("A config file has been generated to store information about")
             puts("the the droplets you want to create each time /start is run")
             puts("and the volumes that store the data for each server.")
             puts("The default values are enough for a small server.")
+            puts("------------------------------------------------------------")
         end
         
         # Reads the config file into an array of strings

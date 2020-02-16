@@ -31,9 +31,11 @@ class DO_INTEGRATOR
         # Generates an empty API key file if one does not exist.
         if !File.exist?(DO_TOKEN_FILE_NAME)
             File.write(DO_TOKEN_FILE_NAME, TOKEN_NOT_FOUND)
+            puts("\n------------------------------------------------------------")
             puts("A file has been created to store your DigitalOcean API token.")
             puts("This token can be found within your DigitalOcean account.")
             puts("Please insert it into token_do.txt before continuing")
+            puts("------------------------------------------------------------")
         end
 
         # Reads your DigitalOcean API key from token_do.txt
