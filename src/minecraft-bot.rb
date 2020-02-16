@@ -120,6 +120,7 @@ bot.command :start do |event, server|
     # Finds and prints the IPv4 address of the server to chat
     net = doclient.droplets.find(id: droplet.id).networks.v4[0]
     event.respond("**Server IP:** #{net.ip_address}")
+    event.respond("Please be aware that the server may take several minutes to finish starting up. Your Minecraft client might say the server is using an 'old' version of the game during this time.")
     
     sleep(30)
     bot.update_status("online", "0 Players Online", nil, 0, false, 3)
@@ -128,10 +129,42 @@ bot.command :start do |event, server|
 end
 
 bot.command :stop do |event|
+    
+    unless isRunning
+       return "No servers are currently running."
+    end
+    
+    isRunning = false
+    
     event.respond("Stopping Server...")
     bot.update_status("idle", "Server Shutdown", nil, 0, false, 3)
-    # Insert DigitalOcean stop commands here
+    
+    # Sends a shutdown signal to the droplet that is currently running.
+    # This will trigger a stop command on the minecraft server, and then
+    # gracefully shut down the droplet.
+    doclient.droplet_actions.shutdown_for_tag(tag_name: "minecraft-bot")
+    
+    sleep(20)
+    doclient.droplets.delete_for_tag(tag_name: "minecraft-bot")
+    bot.update_status("dnd", "Offline Server", nil, 0, false, 3)
+    
     return nil
+end
+
+# Sends a restart command to the droplet. This is useful for when the Minecraft
+# server crashes.
+bot.command :reset do |event|
+   
+   unless isRunning
+       return "No servers are currently running."
+    end
+   
+   event.respond("Resetting server instance...")
+   bot.update_status("Server Reset in Progress", "Server Shutdown", nil, 0, false, 3)
+   
+   doclient.droplet_actions.power_cycle_for_tag(tag_name: "minecraft-bot")
+   sleep(30)
+   bot.update_status("online", "0 Players Online", nil, 0, false, 3)
 end
 
 ### Bot Post Launch
