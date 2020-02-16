@@ -2,12 +2,18 @@
 require 'discordrb'
 require 'droplet_kit'
 require_relative 'do_integrator'
+require_relative 'config_manager'
+
+DISCORD_API_TOKEN_FILE_NAME = "token.txt"
 
 # The default string in token.txt when the user has not yet added their custom token
 TOKEN_NOT_FOUND = "token=INSERT DISCORD BOT TOKEN HERE"
 
 # Specifies whether there is currently a server online
 isRunning = false
+
+# Reads the config file and provides methods that return the values as strings
+config = CONFIG_MANAGER.new
 
 # DigitalOcean DropletKit client
 doclient = DO_INTEGRATOR.new
@@ -17,8 +23,8 @@ if doclient == nil
 end
 
 # Generates empty token/application ID files if they do not already exist
-if !File.exist?("token.txt")
-    File.write("token.txt", TOKEN_NOT_FOUND)
+if !File.exist?(DISCORD_API_TOKEN_FILE_NAME)
+    File.write(DISCORD_API_TOKEN_FILE_NAME, TOKEN_NOT_FOUND)
     puts("A file has been created to store your bot's unique token.")
     puts("This token can be found within your Discord Dev Portal.")
     puts("Please insert it into token.txt before continuing")
