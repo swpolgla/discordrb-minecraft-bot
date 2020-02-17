@@ -19,6 +19,13 @@ To create your first server volume follow these steps:
 
 This process can be repeated as many times as you want. If you provide the /start command with an argument, you can specify the name of the volume that the bot will start. Ex: "/start minecraft-bot-survival" would start a different server than "/start minecraft-bot-default". Please note that only one server can be active at a time.
 
+# How to start the bot
+Install ruby from https://www.ruby-lang.org/en/downloads/
+I won't provide instructions on how to install it or set it up.
+The version provided with newer versions of MacOS is sufficient.
+
+Once it's installed you can simply run "ruby minecraft-bot.rb"
+
 # Other Important Info:
 - The bot will automatically transfer all SSH keys stored in your DigitalOcean account to any droplets it creates, that contain "minecraft" in their name.
 - All droplets created by the bot are tagged with "minecraft-bot" within DigitalOcean.
