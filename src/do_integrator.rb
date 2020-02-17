@@ -38,13 +38,16 @@ class DO_INTEGRATOR
             puts("This token can be found within your DigitalOcean account.")
             puts("Please insert it into token_do.txt before continuing")
             puts("------------------------------------------------------------")
+            return
         end
 
         # Reads your DigitalOcean API key from token_do.txt
         token = File.read(DO_TOKEN_FILE_NAME)
         if token == TOKEN_NOT_FOUND
+            puts("\n------------------------------------------------------------")
             puts("Please insert your DigitalOcean API access token into token_do.txt before continuing.")
             puts("This token can be found within your DigitalOcean account.")
+            puts("------------------------------------------------------------")
             return
         end
         return token

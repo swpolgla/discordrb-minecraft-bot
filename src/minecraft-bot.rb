@@ -4,7 +4,7 @@ require 'droplet_kit'
 require_relative 'do_integrator'
 require_relative 'config_manager'
 
-DISCORD_API_TOKEN_FILE_NAME = "config/token.txt"
+DISCORD_API_TOKEN_FILE_NAME = "config/token_discord.txt"
 
 # The default string in token.txt when the user has not yet added their custom token
 TOKEN_NOT_FOUND = "token=INSERT DISCORD BOT TOKEN HERE"
@@ -27,17 +27,20 @@ end
 if !File.exist?(DISCORD_API_TOKEN_FILE_NAME)
     File.write(DISCORD_API_TOKEN_FILE_NAME, TOKEN_NOT_FOUND)
     puts("\n------------------------------------------------------------")
-    puts("A file has been created to store your bot's unique token.")
+    puts("A file has been created to store your bot's Discord API token.")
     puts("This token can be found within your Discord Dev Portal.")
     puts("Please insert it into token.txt before continuing")
     puts("------------------------------------------------------------")
+    return
 end
 
 # Reads your specific application ID/token from their individual files
 token = File.read(DISCORD_API_TOKEN_FILE_NAME)
 if token == TOKEN_NOT_FOUND
-    puts("Please insert your bot's unique token into token.txt before continuing.")
+    puts("\n------------------------------------------------------------")
+    puts("Please insert your bot's Discord API token into token.txt before continuing.")
     puts("This token can be found within your Discord Dev Portal.")
+    puts("------------------------------------------------------------")
     return
 end
 token = token[6..token.length]
