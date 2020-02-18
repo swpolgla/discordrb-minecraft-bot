@@ -1,6 +1,8 @@
 # This bot manages a specified Minecraft server hosted on DigitalOcean.
 require 'discordrb'
 require 'droplet_kit'
+require 'minestat'
+require 'rufus-scheduler'
 require_relative 'do_integrator'
 require_relative 'config_manager'
 
@@ -12,11 +14,17 @@ TOKEN_NOT_FOUND = "token=INSERT DISCORD BOT TOKEN HERE"
 # Specifies whether there is currently a server online
 isRunning = false
 
+# The server's IP address as a string. Used for getting stats.
+serverIP = nil
+
 # Reads the config file and provides methods that return the values as strings
 config = CONFIG_MANAGER.new
 
 # DigitalOcean DropletKit client
 doclient = DO_INTEGRATOR.new.create_client
+
+# A minestat client to gather information about the minecraft server
+msClient = nil
 
 if doclient == nil
    return
@@ -124,11 +132,18 @@ bot.command :start do |event, server|
     
     # Finds and prints the IPv4 address of the server to chat
     net = doclient.droplets.find(id: droplet.id).networks.v4[0]
+    serverIP = net.ip_address
     event.respond("**Server IP:** #{net.ip_address}")
     event.respond("Please be aware that the server may take several minutes to finish starting up. Your Minecraft client might say the server is using an 'old' version of the game during this time.")
     
-    sleep(45)
-    bot.update_status("online", "0 Players Online", nil, 0, false, 3)
+    while true
+        sleep(60)
+        msClient = MineStat.new("#{net.ip_address}", 25565)
+        if msClient.online
+            bot.update_status("online", "#{msClient.current_players}/#{msClient.max_players} Players Online", nil, 0, false, 3)
+            break
+        end
+    end
     
     return nil
 end
@@ -159,6 +174,7 @@ end
 
 # Sends a restart command to the droplet. This is useful for when the Minecraft
 # server crashes.
+# TODO - Fix the startup script not being run when the droplet boots back up.
 bot.command :reset do |event|
    
    unless isRunning
@@ -178,6 +194,23 @@ bot.command :reset do |event|
    return nil
 end
 
+# Pings the minecraft server and returns the player count and MOTD.
+bot.command :status do |event|
+   
+   unless isRunning
+       return "No servers are currently running."
+    end
+   
+   msClient = MineStat.new("#{serverIP}", 25565)
+   
+   unless msClient.online
+       return "Server ping failed."
+    end
+   
+   return "**#{msClient.current_players}/#{msClient.max_players} Players Online** - #{msClient.motd}"
+   
+end
+
 ### Bot Post Launch
 ## Methods that need to be called on the bot after it has established a
 ## connection to Discord are listed here.
@@ -186,5 +219,21 @@ bot.run(true)
 
 # last int is status type. 0 - Playing, 1 - Streaming, 2 - Listening, 3 - Watching
 bot.update_status("dnd", "Offline Server", nil, 0, false, 3)
+
+scheduler = Rufus::Scheduler.new
+
+# Every 10 minutes if the server is running, the bot will ping the Minecraft Server
+# to check the number of active players. It will then Update its status to display
+# it.
+scheduler.every '10m' do
+   if isRunning
+       
+       msClient = MineStat.new("#{serverIP}", 25565)
+       
+       if msClient.online
+           bot.update_status("online", "#{msClient.current_players}/#{msClient.max_players} Players Online", nil, 0, false, 3)
+       end
+    end
+end
 
 bot.sync
