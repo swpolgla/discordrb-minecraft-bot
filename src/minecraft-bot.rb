@@ -14,6 +14,11 @@ TOKEN_NOT_FOUND = "token=INSERT DISCORD BOT TOKEN HERE"
 # Specifies whether there is currently a server online
 isRunning = false
 
+# Every 10 minutes if the server is active, the Minecraft server is pinged to check
+# player count. If the player count is 0 for 2 consecutive checks, the server is
+# stopped.
+playersOnline = true
+
 # The server's IP address as a string. Used for getting stats.
 serverIP = nil
 
@@ -22,9 +27,6 @@ config = CONFIG_MANAGER.new
 
 # DigitalOcean DropletKit client
 doclient = DO_INTEGRATOR.new.create_client
-
-# A minestat client to gather information about the minecraft server
-msClient = nil
 
 if doclient == nil
    return
@@ -74,6 +76,8 @@ bot.command :start do |event, server|
     if isRunning
        break
     end
+    
+    playersOnline = true
     
     # Checks to see if the user has specified a custom volume to load
     if server == nil
@@ -232,6 +236,26 @@ scheduler.every '10m' do
        
        if msClient.online
            bot.update_status("online", "#{msClient.current_players}/#{msClient.max_players} Players Online", nil, 0, false, 3)
+           
+           # Runs the equivalent of /stop if 0 players have been online for 20 minutes.
+           # TODO - refactor to prevent code duplication
+           unless playersOnline
+               isRunning = false
+               
+               bot.update_status("idle", "Server Shutdown", nil, 0, false, 3)
+
+               doclient.droplet_actions.shutdown_for_tag(tag_name: "minecraft-bot")
+               
+               sleep(20)
+               doclient.droplets.delete_for_tag(tag_name: "minecraft-bot")
+               bot.update_status("dnd", "Offline Server", nil, 0, false, 3)
+            end
+           
+           if msClient.current_players == 0
+               playersOnline = false
+            else
+                playersOnline = true
+            end
        end
     end
 end
