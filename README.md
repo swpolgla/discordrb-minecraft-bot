@@ -8,7 +8,7 @@ The bot will generate some config files on first launch. It needs a Discord API 
 
 The bot stores your Minecraft server data on DigitalOcean "volumes". This allows your server data to persist even after a droplet has been destroyed. Your server files must be laid out in a specific way in order for the bot to function. (In the future this will be simplified.)
 
-To create your first server volume follow these steps:
+### To create your first server volume follow these steps:
 - From your DigitalOcean account, create a droplet. The default Ubuntu distro and the cheapest specs are just fine. You'll only need it for a few minutes. Please make sure you pick the correct region. Volumes CANNOT be moved across DigitalOcean server regions, and the region you choose for this droplet will decide where the volume created in the next step is located.
 - Once the droplet is booted up, go to the "Volumes" tab in DigitalOcean. Create a volume with enough space to store your server files, and attach it to the droplet you created in the prior step. Name it "minecraft-bot-default". (If you want to name it differently, you can edit the config file.)
 - Ensure that your server files include a starup script named "start.sh". This should include the java terminal command you want to use to start the server. The bot will not work without this.
@@ -24,7 +24,10 @@ Install ruby from https://www.ruby-lang.org/en/downloads/
 I won't provide instructions on how to install it or set it up.
 The version provided with newer versions of MacOS is sufficient.
 
-Once it's installed you can simply run "ruby minecraft-bot.rb"
+Next, you'll need to run `gem install bundler`
+Once bundler is installed just run `bundle install` from within the src folder of the project. This will take care of all the dependencies necessary to run the bot.
+
+Once it's installed you can simply run `ruby minecraft-bot.rb`
 
 # Other Important Info:
 - The bot will automatically transfer all SSH keys stored in your DigitalOcean account to any droplets it creates, that contain "minecraft" in their name.
