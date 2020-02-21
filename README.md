@@ -27,7 +27,7 @@ The version provided with newer versions of MacOS is sufficient.
 Next, you'll need to run `gem install bundler`
 Once bundler is installed just run `bundle install` from within the src folder of the project. This will take care of all the dependencies necessary to run the bot.
 
-Once it's installed you can simply run `ruby minecraft-bot.rb`
+Once it's installed you can simply run `ruby minecraft_bot.rb`
 
 # Other Important Info:
 - The bot will automatically transfer all SSH keys stored in your DigitalOcean account to any droplets it creates, that contain "minecraft" in their name.

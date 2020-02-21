@@ -226,10 +226,11 @@ bot.update_status("dnd", "Offline Server", nil, 0, false, 3)
 
 scheduler = Rufus::Scheduler.new
 
-# Every 10 minutes if the server is running, the bot will ping the Minecraft Server
+# Every 5 minutes if the server is running, the bot will ping the Minecraft Server
 # to check the number of active players. It will then Update its status to display
-# it.
-scheduler.every '10m' do
+# it. This also performs a check for current players. If after 10 minutes 0 players
+# have been online, the server is shutdown.
+scheduler.every '5m' do
    if isRunning
        
        msClient = MineStat.new("#{serverIP}", 25565)
@@ -237,7 +238,7 @@ scheduler.every '10m' do
        if msClient.online
            bot.update_status("online", "#{msClient.current_players}/#{msClient.max_players} Players Online", nil, 0, false, 3)
            
-           # Runs the equivalent of /stop if 0 players have been online for 20 minutes.
+           # Runs the equivalent of /stop if 0 players have been online for 10 minutes.
            # TODO - refactor to prevent code duplication
            unless playersOnline
                isRunning = false
@@ -251,7 +252,7 @@ scheduler.every '10m' do
                bot.update_status("dnd", "Offline Server", nil, 0, false, 3)
             end
            
-           if msClient.current_players == 0
+           if msClient.current_players.to_s == "0"
                playersOnline = false
             else
                 playersOnline = true
