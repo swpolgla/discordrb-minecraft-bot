@@ -23,7 +23,7 @@ class CONFIG_MANAGER
         
         # Reads the config file into an array of strings
         @config_data = File.readlines(CONFIG_FILE_NAME)
-            
+        
         # This strips out the labels from each line, leaving only the data.
         # It's an ugly way of accomplishing this task but it works.
         @config_data[0] = @config_data[0][13..@config_data[0].length - 2]
@@ -36,22 +36,22 @@ class CONFIG_MANAGER
     
     # Returns the name of the droplet the bot will create as a string
     def droplet_name
-       return @config_data[0]
+        return @config_data[0]
     end
     
     # Returns the server region the droplet will be created in as a string
     def server_region
-       return @config_data[1]
+        return @config_data[1]
     end
     
     # Returns the spec string of the droplet
     def droplet_specs
-       return @config_data[2]
+        return @config_data[2]
     end
     
     # Returns the os image string that the droplet will use
     def os_image
-       return @config_data[3]
+        return @config_data[3]
     end
     
     # Returns the name of the volume containing the server to be launched if
@@ -63,8 +63,8 @@ class CONFIG_MANAGER
     # Parses startup_script.txt into a string and substitutes the correct volume
     # name into the commands that mount the storage volume with the server files.
     def startup_script(volume_name)
-       script = File.read(STARTUP_SCRIPT_FILE_NAME)
-       script = script.gsub("{VOLUME_NAME}", volume_name)
-       return script
+        script = File.read(STARTUP_SCRIPT_FILE_NAME)
+        script = script.gsub("{VOLUME_NAME}", volume_name)
+        return script
     end
 end

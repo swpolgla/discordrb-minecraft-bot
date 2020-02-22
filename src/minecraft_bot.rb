@@ -74,7 +74,7 @@ bot.command :start do |event, server|
     
     # Prevent using the /start command if the server is already running
     if isRunning
-       break
+        break
     end
     
     playersOnline = true
@@ -101,8 +101,8 @@ bot.command :start do |event, server|
     doclient.volumes.all.each {
         |x|
         if x.name == volume_name
-           volume_id = x.id
-           break
+            volume_id = x.id
+            break
         end
     }
     
@@ -113,7 +113,7 @@ bot.command :start do |event, server|
     doclient.ssh_keys.all.each {
         |x|
         if x.name.include? "minecraft"
-           ssh_key_list.push(x.fingerprint)
+            ssh_key_list.push(x.fingerprint)
         end
     }
 
@@ -159,14 +159,14 @@ end
 bot.command :stop do |event|
     
     unless isRunning
-       return "No servers are currently running."
+        return "No servers are currently running."
     end
     
     isRunning = false
     
     event.respond("Stopping Server...")
     bot.update_status("idle", "Server Shutdown", nil, 0, false, 3)
-
+    
     doclient.droplet_actions.shutdown_for_tag(tag_name: "minecraft-bot")
     
     sleep(20)
@@ -180,39 +180,39 @@ end
 # server crashes.
 # TODO - Fix the startup script not being run when the droplet boots back up.
 bot.command :reset do |event|
-   
-   unless isRunning
-       return "No servers are currently running."
+    
+    unless isRunning
+        return "No servers are currently running."
     end
-   
-   event.respond("Resetting server instance...")
-   bot.update_status("away", "Server Reset in Progress...", nil, 0, false, 3)
-   
-   doclient.droplets.all(tag_name: "minecraft-bot").each {
-       |x|
-       doclient.droplet_actions.reboot(droplet_id: x.id)
-   }
-   sleep(30)
-   bot.update_status("online", "0 Players Online", nil, 0, false, 3)
-   
-   return nil
+    
+    event.respond("Resetting server instance...")
+    bot.update_status("away", "Server Reset in Progress...", nil, 0, false, 3)
+    
+    doclient.droplets.all(tag_name: "minecraft-bot").each {
+        |x|
+        doclient.droplet_actions.reboot(droplet_id: x.id)
+    }
+    sleep(30)
+    bot.update_status("online", "0 Players Online", nil, 0, false, 3)
+    
+    return nil
 end
 
 # Pings the minecraft server and returns the player count and MOTD.
 bot.command :status do |event|
-   
-   unless isRunning
-       return "No servers are currently running."
+    
+    unless isRunning
+        return "No servers are currently running."
     end
-   
-   msClient = MineStat.new("#{serverIP}", 25565)
-   
-   unless msClient.online
-       return "Server ping failed."
+    
+    msClient = MineStat.new("#{serverIP}", 25565)
+    
+    unless msClient.online
+        return "Server ping failed."
     end
-   
-   return "**#{msClient.current_players}/#{msClient.max_players} Players Online** - #{msClient.motd}"
-   
+    
+    return "**#{msClient.current_players}/#{msClient.max_players} Players Online** - #{msClient.motd}"
+    
 end
 
 ### Bot Post Launch
@@ -231,33 +231,33 @@ scheduler = Rufus::Scheduler.new
 # it. This also performs a check for current players. If after 10 minutes 0 players
 # have been online, the server is shutdown.
 scheduler.every '5m' do
-   if isRunning
-       
-       msClient = MineStat.new("#{serverIP}", 25565)
-       
-       if msClient.online
-           bot.update_status("online", "#{msClient.current_players}/#{msClient.max_players} Players Online", nil, 0, false, 3)
-           
-           # Runs the equivalent of /stop if 0 players have been online for 10 minutes.
-           # TODO - refactor to prevent code duplication
-           unless playersOnline
-               isRunning = false
-               
-               bot.update_status("idle", "Server Shutdown", nil, 0, false, 3)
-
-               doclient.droplet_actions.shutdown_for_tag(tag_name: "minecraft-bot")
-               
-               sleep(20)
-               doclient.droplets.delete_for_tag(tag_name: "minecraft-bot")
-               bot.update_status("dnd", "Offline Server", nil, 0, false, 3)
+    if isRunning
+        
+        msClient = MineStat.new("#{serverIP}", 25565)
+        
+        if msClient.online
+            bot.update_status("online", "#{msClient.current_players}/#{msClient.max_players} Players Online", nil, 0, false, 3)
+            
+            # Runs the equivalent of /stop if 0 players have been online for 10 minutes.
+            # TODO - refactor to prevent code duplication
+            unless playersOnline
+                isRunning = false
+                
+                bot.update_status("idle", "Server Shutdown", nil, 0, false, 3)
+                
+                doclient.droplet_actions.shutdown_for_tag(tag_name: "minecraft-bot")
+                
+                sleep(20)
+                doclient.droplets.delete_for_tag(tag_name: "minecraft-bot")
+                bot.update_status("dnd", "Offline Server", nil, 0, false, 3)
             end
-           
-           if msClient.current_players.to_s == "0"
-               playersOnline = false
+            
+            if msClient.current_players.to_s == "0"
+                playersOnline = false
             else
                 playersOnline = true
             end
-       end
+        end
     end
 end
 

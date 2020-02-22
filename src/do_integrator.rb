@@ -40,7 +40,7 @@ class DO_INTEGRATOR
             puts("------------------------------------------------------------")
             return
         end
-
+        
         # Reads your DigitalOcean API key from token_do.txt
         token = File.read(DO_TOKEN_FILE_NAME)
         if token == TOKEN_NOT_FOUND
