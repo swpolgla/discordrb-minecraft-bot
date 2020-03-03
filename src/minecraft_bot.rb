@@ -136,6 +136,13 @@ bot.command :start do |event, server|
     
     # Finds and prints the IPv4 address of the server to chat
     net = doclient.droplets.find(id: droplet.id).networks.v4[0]
+    
+    # In the event the DigitalOcean API is a bit slow, wait on it to catch up
+    while net == nil
+       sleep(5)
+       net = doclient.droplets.find(id: droplet.id).networks.v4[0]
+    end
+    
     serverIP = net.ip_address
     event.respond("**Server IP:** #{net.ip_address}")
     event.respond("Please be aware that the server may take several minutes to finish starting up. Your Minecraft client might say the server is using an 'old' version of the game during this time.")
@@ -258,6 +265,8 @@ scheduler.every '5m' do
                 playersOnline = true
             end
         end
+    else
+        playersOnline = true
     end
 end
 
