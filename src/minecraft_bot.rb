@@ -286,6 +286,7 @@ scheduler.every '5m' do
         end
     else
         playersOnline = true
+        bot.update_status("dnd", "Offline Server", nil, 0, false, 3)
     end
 end
 
