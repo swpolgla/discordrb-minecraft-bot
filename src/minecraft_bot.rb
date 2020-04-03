@@ -70,7 +70,7 @@ puts("------------------------------------------------------------")
 
 # The /start command. Starts the default server if no server name is specified.
 # @param server the name of the droplet to launch
-bot.command :start do |event, server|
+bot.command(:start, chain_usable: false, description: "Starts a server. `/start <volume_name>`") do |event, server|
     
     # Prevent using the /start command if the server is already running
     if isRunning
@@ -86,7 +86,6 @@ bot.command :start do |event, server|
         event.respond("Starting " << server << "...")
     end
     isRunning = true
-    bot.update_status("idle", "Server Startup", nil, 0, false, 3)
     
     
     # Begin creating droplet
@@ -105,6 +104,13 @@ bot.command :start do |event, server|
             break
         end
     }
+    
+    if volume_id == nil
+        response = "The specified server volume does not exist on your DigitalOcean account.\n"
+        response += "Please input a valid volume name. For a list of available volumes, use `/servers`"
+        return response
+    end
+    bot.update_status("idle", "Server Startup", nil, 0, false, 3)
     
     # Searches all SSH keys on your Digital Ocean account for the word
     # "minecraft" in their name and stores them in an array. These SSH keys will
@@ -163,7 +169,7 @@ end
 # trigger a stop command on the minecraft server, and then gracefully shut down
 # the droplet. After 20 seconds have passed the droplet is destroyed, along with
 # any files not stored on the server data volume.
-bot.command :stop do |event|
+bot.command(:stop, chain_usable: false, description: "Stops the currently running server.") do |event|
     
     unless isRunning
         return "No servers are currently running."
@@ -206,7 +212,7 @@ bot.command :reset do |event|
 end
 
 # Pings the minecraft server and returns the player count and MOTD.
-bot.command :status do |event|
+bot.command(:status, chain_usable: false, description: "Displays server player count and MOTD.") do |event|
     
     unless isRunning
         return "No servers are currently running."
@@ -220,6 +226,18 @@ bot.command :status do |event|
     
     return "**#{msClient.current_players}/#{msClient.max_players} Players Online** - #{msClient.motd}"
     
+end
+
+bot.command(:servers, chain_usable: false, description: "Displays all available server volumes.") do |event|
+   
+   response = "Available Server Volumes: (Case Sensitive)"
+   doclient.volumes.all.each {
+       |x|
+       response += "\n`" + x.name + "`"
+   }
+   
+   return response
+   
 end
 
 ### Bot Post Launch
