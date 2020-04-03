@@ -228,6 +228,7 @@ bot.command(:status, chain_usable: false, description: "Displays server player c
     
 end
 
+# Polls the DigitalOcean API for server volume names and returns them in chat
 bot.command(:servers, chain_usable: false, description: "Displays all available server volumes.") do |event|
    
    response = "Available Server Volumes: (Case Sensitive)"
