@@ -4,7 +4,7 @@
 class CONFIG_MANAGER
     
     CONFIG_FILE_NAME = "config/config.txt"
-    FRESH_CONFIG_FILE = "Droplet_Name=minecraft-bot-droplet\nServer_Region=nyc3\nDroplet_Specs=s-1vcpu-2gb\nOS_Image=ubuntu-18-04-x64\nDefault_Server=minecraft-bot-default"
+    FRESH_CONFIG_FILE = "Droplet_Name=minecraft-bot-droplet\nServer_Region=nyc3\nDroplet_Specs=s-1vcpu-2gb\nOS_Image=ubuntu-20-04-x64\nDefault_Server=minecraft-bot-default"
     STARTUP_SCRIPT_FILE_NAME = "startup_script.txt"
     
     @config_data = nil

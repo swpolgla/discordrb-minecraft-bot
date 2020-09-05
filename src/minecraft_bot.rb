@@ -187,7 +187,7 @@ bot.command(:start, chain_usable: false, description: "Starts a server. `/start 
     # to check the number of active players. It will then Update its status to display
     # it. This also performs a check for current players. If after 10 minutes 0 players
     # have been online, the server is shutdown.
-    autoShutdownJobID = scheduler.every '1m' do
+    autoShutdownJobID = scheduler.every '5m' do
         msClient = MineStat.new("#{serverIP}", 25565)
         if msClient.online
             bot.update_status("online", "#{msClient.current_players}/#{msClient.max_players} Players Online", nil, 0, false, 3)
