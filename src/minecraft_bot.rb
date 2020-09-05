@@ -318,9 +318,15 @@ end
 ## Methods that need to be called on the bot after it has established a
 ## connection to Discord are listed here.
 
-bot.run(true)
+# Every time the bot connects to Discord, it resets its status to offline if
+# no servers are running. Without this the bots status will eventually reset
+# to online with no status message if left idle for long periods of time.
+bot.ready() do |event|
+    unless isRunning
+       bot.update_status("dnd", "Offline Server", nil, 0, false, 3)
+    end
+end
 
-# last int is status type. 0 - Playing, 1 - Streaming, 2 - Listening, 3 - Watching
-bot.update_status("dnd", "Offline Server", nil, 0, false, 3)
+bot.run(true)
 
 bot.sync
