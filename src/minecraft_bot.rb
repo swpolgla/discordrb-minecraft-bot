@@ -61,7 +61,7 @@ bot = Discordrb::Commands::CommandBot.new token: token, prefix: '/'
 
 # Prompt to invite the bot to your server if necessary
 puts("------------------------------------------------------------")
-puts "\nInvite the bot to your server: #{bot.invite_url}\n\n"
+puts ("\nInvite the bot to your server: #{bot.invite_url}\n\n")
 puts("------------------------------------------------------------")
 
 ### Bot Setup
@@ -78,13 +78,6 @@ bot.command(:start, chain_usable: false, description: "Starts a server. `/start 
     end
     
     playersOnline = true
-    
-    # Checks to see if the user has specified a custom volume to load
-    if server == nil
-        event.respond("Starting Default Server...")
-    else
-        event.respond("Starting " << server << "...")
-    end
     isRunning = true
     
     
@@ -108,7 +101,15 @@ bot.command(:start, chain_usable: false, description: "Starts a server. `/start 
     if volume_id == nil
         response = "The specified server volume does not exist on your DigitalOcean account.\n"
         response += "Please input a valid volume name. For a list of available volumes, use `/servers`"
-        return response
+        
+        event.channel.send_embed do |embed|
+          embed.title = "Error Starting Server"
+          embed.colour = 0xd54712
+          embed.description = response
+        end
+        
+        isRunning = false
+        return
     end
     bot.update_status("idle", "Server Startup", nil, 0, false, 3)
     
@@ -149,9 +150,22 @@ bot.command(:start, chain_usable: false, description: "Starts a server. `/start 
        net = doclient.droplets.find(id: droplet.id).networks.v4[0]
     end
     
+    # Sends embed message
     serverIP = net.ip_address
-    event.respond("**Server IP:** #{net.ip_address}")
-    event.respond("Please be aware that the server may take several minutes to finish starting up. Your Minecraft client might say the server is using an 'old' version of the game during this time.")
+    response = "**Server IP:** `#{net.ip_address}`\n"
+    response += "Please be aware that the server may take several minutes to finish starting up.\n"
+    response += "Your Minecraft client might say the server is using an 'old' version of the game during this time.\n"
+    
+    serverName = "Default Server"
+    unless server == nil
+       serverName = server
+    end
+    
+    event.channel.send_embed do |embed|
+      embed.title = "Starting " + serverName + "..."
+      embed.colour = 0x7ed321
+      embed.description = response
+    end
     
     while true
         sleep(60)
@@ -224,21 +238,31 @@ bot.command(:status, chain_usable: false, description: "Displays server player c
         return "Server ping failed."
     end
     
-    return "**#{msClient.current_players}/#{msClient.max_players} Players Online** - #{msClient.motd}"
-    
+    event.channel.send_embed do |embed|
+      embed.title = "#{msClient.current_players}/#{msClient.max_players} Players Online"
+      embed.colour = 0x7ed321
+      embed.description = "#{msClient.motd}"
+
+    end
+    return nil
 end
 
 # Polls the DigitalOcean API for server volume names and returns them in chat
 bot.command(:servers, chain_usable: false, description: "Displays all available server volumes.") do |event|
    
-   response = "Available Server Volumes: (Case Sensitive)"
+   response = ""
    doclient.volumes.all.each {
        |x|
-       response += "\n`" + x.name + "`"
+       response += "`" + x.name + "`\n"
    }
    
-   return response
-   
+   event.channel.send_embed do |embed|
+     embed.title = "Available Server Volumes: (Case Sensitive)"
+     embed.colour = 0x7ed321
+     embed.description = response
+
+   end
+   return nil
 end
 
 ### Bot Post Launch
