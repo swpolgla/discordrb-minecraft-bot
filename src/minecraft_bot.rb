@@ -25,6 +25,12 @@ serverIP = nil
 # Reads the config file and provides methods that return the values as strings
 config = CONFIG_MANAGER.new
 
+# An instance of the Rufus scheduler. Handles server auto shutdown.
+scheduler = Rufus::Scheduler.new
+# The job ID for server auto shutdown. Created in /start command, erased in /stop command
+# or after server auto shutdown.
+autoShutdownJobID = nil
+
 # DigitalOcean DropletKit client
 doclient = DO_INTEGRATOR.new.create_client
 
@@ -77,7 +83,6 @@ bot.command(:start, chain_usable: false, description: "Starts a server. `/start 
         break
     end
     
-    playersOnline = true
     isRunning = true
     
     
@@ -176,7 +181,52 @@ bot.command(:start, chain_usable: false, description: "Starts a server. `/start 
         end
     end
     
+    
+
+    # Every 5 minutes if the server is running, the bot will ping the Minecraft Server
+    # to check the number of active players. It will then Update its status to display
+    # it. This also performs a check for current players. If after 10 minutes 0 players
+    # have been online, the server is shutdown.
+    autoShutdownJobID = scheduler.every '1m' do
+        msClient = MineStat.new("#{serverIP}", 25565)
+        puts "5M CHECK GO BRBRBRBRBRBRBBR"
+        if msClient.online
+            bot.update_status("online", "#{msClient.current_players}/#{msClient.max_players} Players Online", nil, 0, false, 3)
+            
+            # Runs the equivalent of /stop if 0 players have been online for 10 minutes.
+            # TODO - refactor to prevent code duplication
+            unless playersOnline
+                isRunning = false
+                
+                bot.update_status("idle", "Server Shutdown", nil, 0, false, 3)
+                
+                doclient.droplet_actions.shutdown_for_tag(tag_name: "minecraft-bot")
+                
+                sleep(20)
+                doclient.droplets.delete_for_tag(tag_name: "minecraft-bot")
+                bot.update_status("dnd", "Offline Server", nil, 0, false, 3)
+                
+                job = scheduler.job(autoShutdownJobID)
+                job.unschedule
+                playersOnline = true
+                autoShutdownJobID = nil
+                next
+            end
+            
+            if msClient.current_players.to_s == "0"
+                playersOnline = false
+            else
+                playersOnline = true
+            end
+        end
+    end
+    
     return nil
+end
+
+bot.command(:debug, chain_usable: false) do |event|
+    event.respond("Shutdown Job: #{autoShutdownJobID}")
+    event.respond("players Online: #{playersOnline}")
 end
 
 # Sends a shutdown signal to the droplet that is currently running. This will
@@ -188,6 +238,11 @@ bot.command(:stop, chain_usable: false, description: "Stops the currently runnin
     unless isRunning
         return "No servers are currently running."
     end
+    
+    job = scheduler.job(autoShutdownJobID)
+    job.unschedule
+    playersOnline = true
+    autoShutdownJobID = nil
     
     isRunning = false
     
@@ -273,45 +328,5 @@ bot.run(true)
 
 # last int is status type. 0 - Playing, 1 - Streaming, 2 - Listening, 3 - Watching
 bot.update_status("dnd", "Offline Server", nil, 0, false, 3)
-
-scheduler = Rufus::Scheduler.new
-
-# Every 5 minutes if the server is running, the bot will ping the Minecraft Server
-# to check the number of active players. It will then Update its status to display
-# it. This also performs a check for current players. If after 10 minutes 0 players
-# have been online, the server is shutdown.
-scheduler.every '5m' do
-    if isRunning
-        
-        msClient = MineStat.new("#{serverIP}", 25565)
-        
-        if msClient.online
-            bot.update_status("online", "#{msClient.current_players}/#{msClient.max_players} Players Online", nil, 0, false, 3)
-            
-            # Runs the equivalent of /stop if 0 players have been online for 10 minutes.
-            # TODO - refactor to prevent code duplication
-            unless playersOnline
-                isRunning = false
-                
-                bot.update_status("idle", "Server Shutdown", nil, 0, false, 3)
-                
-                doclient.droplet_actions.shutdown_for_tag(tag_name: "minecraft-bot")
-                
-                sleep(20)
-                doclient.droplets.delete_for_tag(tag_name: "minecraft-bot")
-                bot.update_status("dnd", "Offline Server", nil, 0, false, 3)
-            end
-            
-            if msClient.current_players.to_s == "0"
-                playersOnline = false
-            else
-                playersOnline = true
-            end
-        end
-    else
-        playersOnline = true
-        bot.update_status("dnd", "Offline Server", nil, 0, false, 3)
-    end
-end
 
 bot.sync
