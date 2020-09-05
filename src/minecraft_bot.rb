@@ -189,7 +189,6 @@ bot.command(:start, chain_usable: false, description: "Starts a server. `/start 
     # have been online, the server is shutdown.
     autoShutdownJobID = scheduler.every '1m' do
         msClient = MineStat.new("#{serverIP}", 25565)
-        puts "5M CHECK GO BRBRBRBRBRBRBBR"
         if msClient.online
             bot.update_status("online", "#{msClient.current_players}/#{msClient.max_players} Players Online", nil, 0, false, 3)
             
@@ -222,11 +221,6 @@ bot.command(:start, chain_usable: false, description: "Starts a server. `/start 
     end
     
     return nil
-end
-
-bot.command(:debug, chain_usable: false) do |event|
-    event.respond("Shutdown Job: #{autoShutdownJobID}")
-    event.respond("players Online: #{playersOnline}")
 end
 
 # Sends a shutdown signal to the droplet that is currently running. This will
