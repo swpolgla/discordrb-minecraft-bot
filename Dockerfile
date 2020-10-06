@@ -5,11 +5,10 @@ RUN bundle config --global frozen 1
 
 WORKDIR /usr/src/app
 
-COPY Gemfile Gemfile.lock ./
+COPY src/Gemfile src/Gemfile.lock ./
 RUN bundle update --bundler
 
 COPY . .
+WORKDIR src
 RUN chmod +x minecraft_bot.rb
-RUN ls
-RUN pwd
 CMD ["/usr/local/bin/ruby", "minecraft_bot.rb"]
