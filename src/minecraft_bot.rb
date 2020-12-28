@@ -147,12 +147,12 @@ bot.command(:start, chain_usable: false, description: "Starts a server. `/start 
     droplet = doclient.droplets.create(droplet)
     
     # Finds and prints the IPv4 address of the server to chat
-    net = doclient.droplets.find(id: droplet.id).networks.v4[0]
+    net = doclient.droplets.find(id: droplet.id).networks.v4[1]
     
     # In the event the DigitalOcean API is a bit slow, wait on it to catch up
     while net == nil
        sleep(5)
-       net = doclient.droplets.find(id: droplet.id).networks.v4[0]
+       net = doclient.droplets.find(id: droplet.id).networks.v4[1]
     end
     
     # Sends embed message
