@@ -23,6 +23,8 @@ This process can be repeated as many times as you want. If you provide the /star
 Install ruby from https://www.ruby-lang.org/en/downloads/ or by using your package manager.
 I won't provide instructions on how to install it or set it up.
 You'll need the full or dev versions of ruby. On Ubuntu the package is labeled as `ruby-full`
+I've personally used Ruby 2.6.3 while developing the bot, however anything newer than 2.5 should work fine.
+If anything newer *doesn't* work, please let me know!
 
 The version provided with newer versions of MacOS is sufficient.
 
@@ -30,7 +32,7 @@ Make sure you install bundler as well. It's necessary to install dependencies.
 Bundler relies on the `build-essential` package on Ubuntu for some of this project's dependencies.
 Once bundler is installed just run `bundle` from within the src folder of the project. This will take care of all the dependencies necessary to run the bot. If bundler complains about being unable to find the right version of bundler, use: `bundle update --bundler` You must have at least 1GB of RAM in order to install the dependencies. The bundle command will inexplicably fail if you have less than that. The bot works fine with less RAM after the dependencies are installed however.
 
-Once you have ruby and the dependencies installed, run `ruby minecraft_bot.rb`
+Once you have ruby and the dependencies installed, run `bundle exec ruby minecraft_bot.rb`
 
 # Other Important Info:
 - The bot will automatically transfer all SSH keys stored in your DigitalOcean account that contain "minecraft" in their name to any droplets it creates.

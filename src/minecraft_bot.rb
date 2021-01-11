@@ -27,7 +27,7 @@ config = CONFIG_MANAGER.new
 
 # An instance of the Rufus scheduler. Handles server auto shutdown.
 scheduler = Rufus::Scheduler.new
-# The job ID for server auto shutdown. Created in /start command, erased in /stop command
+# The job ID for server auto shutdown. Initialized in /start command, erased in /stop command
 # or after server auto shutdown.
 autoShutdownJobID = nil
 
@@ -76,10 +76,15 @@ puts("------------------------------------------------------------")
 
 # The /start command. Starts the default server if no server name is specified.
 # @param server the name of the droplet to launch
-bot.command(:start, chain_usable: false, description: "Starts a server. `/start <volume_name>`") do |event, server|
+bot.command(:start, description: "Starts a server. `/start <volume_name>`") do |event, server|
     
     # Prevent using the /start command if the server is already running
     if isRunning
+        event.channel.send_embed do |embed|
+          embed.title = "Error Starting Server"
+          embed.colour = 0xd54712
+          embed.description = "A server is already running. Please stop it before starting another server."
+        end
         break
     end
     
@@ -227,7 +232,7 @@ end
 # trigger a stop command on the minecraft server, and then gracefully shut down
 # the droplet. After 20 seconds have passed the droplet is destroyed, along with
 # any files not stored on the server data volume.
-bot.command(:stop, chain_usable: false, description: "Stops the currently running server.") do |event|
+bot.command(:stop, description: "Stops the currently running server.") do |event|
     
     unless isRunning
         return "No servers are currently running."
@@ -275,7 +280,7 @@ bot.command :reset do |event|
 end
 
 # Pings the minecraft server and returns the player count and MOTD.
-bot.command(:status, chain_usable: false, description: "Displays server player count and MOTD.") do |event|
+bot.command(:status, description: "Displays server player count and MOTD.") do |event|
     
     unless isRunning
         return "No servers are currently running."
@@ -297,7 +302,7 @@ bot.command(:status, chain_usable: false, description: "Displays server player c
 end
 
 # Polls the DigitalOcean API for server volume names and returns them in chat
-bot.command(:servers, chain_usable: false, description: "Displays all available server volumes.") do |event|
+bot.command(:servers, description: "Displays all available server volumes.") do |event|
    
    response = ""
    doclient.volumes.all.each {
