@@ -97,6 +97,12 @@ bot.command(:start, description: "Starts a server. `/start <volume_name>`") do |
         volume_name = server
     end
     volume_id = nil
+    
+    # We save the volume's region to this variable so that later we can pass this
+    # into the droplet creation method, so that droplets are automatically created
+    # in the same region as the volume you're trying to launch a server from.
+    volume_region = nil
+    
     # Currently it isn't possible to request a specific volume by name using the
     # DigitalOcean api. This works around it by scanning every volume the bot can
     # access through their API for a matching name.
@@ -104,6 +110,7 @@ bot.command(:start, description: "Starts a server. `/start <volume_name>`") do |
         |x|
         if x.name == volume_name
             volume_id = x.id
+            volume_region = x.region.slug
             break
         end
     }
@@ -141,7 +148,7 @@ bot.command(:start, description: "Starts a server. `/start <volume_name>`") do |
     # droplet boots. It is what makes the minecraft server start.
     droplet = DropletKit::Droplet.new(
       name: config.droplet_name,
-      region: config.server_region,
+      region: volume_region,
       size: config.droplet_specs,
       image: config.os_image,
       ssh_keys: ssh_key_list,

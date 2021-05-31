@@ -1,10 +1,20 @@
+require 'json'
+
 # This class manages reading the config file. This config file is strictly
 # for configuring the droplets created by the bot. API access tokens are stored
 # in separate files.
 class CONFIG_MANAGER
     
-    CONFIG_FILE_NAME = "config/config.txt"
-    FRESH_CONFIG_FILE = "Droplet_Name=minecraft-bot-droplet\nServer_Region=nyc3\nDroplet_Specs=s-1vcpu-2gb\nOS_Image=ubuntu-20-04-x64\nDefault_Server=minecraft-bot-default"
+    CONFIG_FILE_NAME = "config/config.json"
+    FRESH_CONFIG_FILE = '{\n'+
+    '  "Droplet_Name": "minecraft-bot-droplet",\n'+
+    '  "Droplet_Specs": "s-1vcpu-2gb",\n'+
+    '  "OS_Image": "ubuntu-20-04-x64",\n'+
+    '  "Default_Server": "minecraft-bot-default",\n'+
+    '  \n'+
+    '  "Information": "For the droplet specs/OS image, get the strings (slugs) from here:",\n'+
+    '  "Link_To_Slugs": "https://slugs.do-api.dev/"\n'+
+    '}';
     STARTUP_SCRIPT_FILE_NAME = "startup_script.txt"
     
     @config_data = nil
@@ -21,43 +31,34 @@ class CONFIG_MANAGER
             puts("------------------------------------------------------------")
         end
         
-        # Reads the config file into an array of strings
-        @config_data = File.readlines(CONFIG_FILE_NAME)
+        # Open the config file for reading
+        file = File.read(CONFIG_FILE_NAME)
         
-        # This strips out the labels from each line, leaving only the data.
-        # It's an ugly way of accomplishing this task but it works.
-        @config_data[0] = @config_data[0][13..@config_data[0].length - 2]
-        @config_data[1] = @config_data[1][14..@config_data[1].length - 2]
-        @config_data[2] = @config_data[2][14..@config_data[2].length - 2]
-        @config_data[3] = @config_data[3][9..@config_data[3].length - 2]
-        @config_data[4] = @config_data[4][15..@config_data[4].length - 1]
+        # Create a dictionary object from the JSON config file
+        @config_data = JSON.parse(file)
+        
         return self
     end
     
     # Returns the name of the droplet the bot will create as a string
     def droplet_name
-        return @config_data[0]
-    end
-    
-    # Returns the server region the droplet will be created in as a string
-    def server_region
-        return @config_data[1]
+        return @config_data['Droplet_Name']
     end
     
     # Returns the spec string of the droplet
     def droplet_specs
-        return @config_data[2]
+        return @config_data['Droplet_Specs']
     end
     
     # Returns the os image string that the droplet will use
     def os_image
-        return @config_data[3]
+        return @config_data['OS_Image']
     end
     
     # Returns the name of the volume containing the server to be launched if
     # the /start command has no parameters
     def default_server
-        return @config_data[4]
+        return @config_data['Default_Server']
     end
     
     # Parses startup_script.txt into a string and substitutes the correct volume
