@@ -1,7 +1,7 @@
 # This bot manages a specified Minecraft server hosted on DigitalOcean.
 require 'discordrb'
 require 'droplet_kit'
-require 'MineStat'
+require 'minestat'
 require 'rufus-scheduler'
 require_relative 'do_integrator'
 require_relative 'config_manager'
