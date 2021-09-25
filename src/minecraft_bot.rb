@@ -1,7 +1,7 @@
 # This bot manages a specified Minecraft server hosted on DigitalOcean.
 require 'discordrb'
 require 'droplet_kit'
-require 'minestat'
+require 'MineStat'
 require 'rufus-scheduler'
 require_relative 'do_integrator'
 require_relative 'config_manager'
@@ -159,12 +159,12 @@ bot.command(:start, description: "Starts a server. `/start <volume_name>`") do |
     droplet = doclient.droplets.create(droplet)
     
     # Finds and prints the IPv4 address of the server to chat
-    net = doclient.droplets.find(id: droplet.id).networks.v4[1]
+    net = doclient.droplets.find(id: droplet.id).networks.v4[0]
     
     # In the event the DigitalOcean API is a bit slow, wait on it to catch up
     while net == nil
        sleep(5)
-       net = doclient.droplets.find(id: droplet.id).networks.v4[1]
+       net = doclient.droplets.find(id: droplet.id).networks.v4[0]
     end
     
     # Sends embed message
@@ -185,9 +185,9 @@ bot.command(:start, description: "Starts a server. `/start <volume_name>`") do |
     end
     
     while true
-        sleep(60)
+        sleep(45)
         msClient = MineStat.new("#{net.ip_address}", 25565)
-        if msClient.online
+        if !msClient.nil? && msClient.online
             bot.update_status("online", "#{msClient.current_players}/#{msClient.max_players} Players Online", nil, 0, false, 3)
             break
         end
@@ -302,7 +302,7 @@ bot.command(:status, description: "Displays server player count and MOTD.") do |
     event.channel.send_embed do |embed|
       embed.title = "#{msClient.current_players}/#{msClient.max_players} Players Online"
       embed.colour = 0x7ed321
-      embed.description = "#{msClient.motd}"
+      embed.description = "Minecraft Version: #{msClient.version}\n#{msClient.stripped_motd}"
 
     end
     return nil

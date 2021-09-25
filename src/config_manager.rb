@@ -7,7 +7,7 @@ class CONFIG_MANAGER
     
     CONFIG_FILE_NAME = "config/config.json"
     FRESH_CONFIG_FILE = "{\n  \"Droplet_Name\": \"minecraft-bot-droplet\",\n  \"Droplet_Specs\": \"s-1vcpu-2gb\",\n  \"OS_Image\": \"ubuntu-20-04-x64\",\n  \"Default_Server\": \"minecraft-bot-default\",\n  \n  \"Information\": \"For the droplet specs/OS image, get the strings (slugs) from here:\",\n  \"Link_To_Slugs\": \"https://slugs.do-api.dev/\"\n}\n"
-    STARTUP_SCRIPT_FILE_NAME = "startup_script.txt"
+    STARTUP_SCRIPT_FILE_NAME = "config/startup_script.txt"
     
     @config_data = nil
     

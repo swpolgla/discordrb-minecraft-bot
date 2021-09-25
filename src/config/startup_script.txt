@@ -2,7 +2,7 @@
 #This file contains the startup script that will be run upon droplet creation.
 #Do not change this file unless you know what you're doing.
 apt update
-apt install default-jre -y
+apt install openjdk-16-jre-headless -y
 
 # Create a mount point for your volume:
 mkdir -p /mnt/{VOLUME_NAME}
