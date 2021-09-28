@@ -265,8 +265,10 @@ bot.command(:stop, description: "Stops the currently running server.") do |event
 end
 
 # Sends a restart command to the droplet. This is useful for when the Minecraft
-# server crashes.
-# TODO - Fix the startup script not being run when the droplet boots back up.
+# server crashes. The startup script defines a cron job that will handle
+# starting the server again on boot. It's better to use /reset vs using
+# /stop and then /start on crash because digital ocean bills for 1 hour
+# at minimum if you destroy a droplet.
 bot.command :reset do |event|
     
     unless isRunning
@@ -274,14 +276,25 @@ bot.command :reset do |event|
     end
     
     event.respond("Resetting server instance...")
-    bot.update_status("away", "Server Reset in Progress...", nil, 0, false, 3)
+    bot.update_status("idle", "Server Reset in Progress...", nil, 0, false, 3)
+    
+    job = scheduler.job(autoShutdownJobID)
+    job.pause
     
     doclient.droplets.all(tag_name: "minecraft-bot").each {
         |x|
         doclient.droplet_actions.reboot(droplet_id: x.id)
     }
-    sleep(30)
-    bot.update_status("online", "0 Players Online", nil, 0, false, 3)
+    while true
+       msClient = MineStat.new("#{serverIP}", 25565)
+       if msClient.online
+           bot.update_status("online", "#{msClient.current_players}/#{msClient.max_players} Players Online", nil, 0, false, 3)
+           break
+       end
+       sleep(45)
+    end
+    
+    job.resume
     
     return nil
 end
