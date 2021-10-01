@@ -27,7 +27,7 @@ config = CONFIG_MANAGER.new
 
 # An instance of the Rufus scheduler. Handles server auto shutdown.
 scheduler = Rufus::Scheduler.new
-# The job ID for server auto shutdown. Created in /start command, erased in /stop command
+# The job ID for server auto shutdown. Initialized in /start command, erased in /stop command
 # or after server auto shutdown.
 autoShutdownJobID = nil
 
@@ -76,10 +76,15 @@ puts("------------------------------------------------------------")
 
 # The /start command. Starts the default server if no server name is specified.
 # @param server the name of the droplet to launch
-bot.command(:start, chain_usable: false, description: "Starts a server. `/start <volume_name>`") do |event, server|
+bot.command(:start, description: "Starts a server. `/start <volume_name>`") do |event, server|
     
     # Prevent using the /start command if the server is already running
     if isRunning
+        event.channel.send_embed do |embed|
+          embed.title = "Error Starting Server"
+          embed.colour = 0xd54712
+          embed.description = "A server is already running. Please stop it before starting another server."
+        end
         break
     end
     
@@ -92,6 +97,12 @@ bot.command(:start, chain_usable: false, description: "Starts a server. `/start 
         volume_name = server
     end
     volume_id = nil
+    
+    # We save the volume's region to this variable so that later we can pass this
+    # into the droplet creation method, so that droplets are automatically created
+    # in the same region as the volume you're trying to launch a server from.
+    volume_region = nil
+    
     # Currently it isn't possible to request a specific volume by name using the
     # DigitalOcean api. This works around it by scanning every volume the bot can
     # access through their API for a matching name.
@@ -99,6 +110,7 @@ bot.command(:start, chain_usable: false, description: "Starts a server. `/start 
         |x|
         if x.name == volume_name
             volume_id = x.id
+            volume_region = x.region.slug
             break
         end
     }
@@ -136,7 +148,7 @@ bot.command(:start, chain_usable: false, description: "Starts a server. `/start 
     # droplet boots. It is what makes the minecraft server start.
     droplet = DropletKit::Droplet.new(
       name: config.droplet_name,
-      region: config.server_region,
+      region: volume_region,
       size: config.droplet_specs,
       image: config.os_image,
       ssh_keys: ssh_key_list,
@@ -173,9 +185,9 @@ bot.command(:start, chain_usable: false, description: "Starts a server. `/start 
     end
     
     while true
-        sleep(60)
+        sleep(45)
         msClient = MineStat.new("#{net.ip_address}", 25565)
-        if msClient.online
+        if !msClient.nil? && msClient.online
             bot.update_status("online", "#{msClient.current_players}/#{msClient.max_players} Players Online", nil, 0, false, 3)
             break
         end
@@ -227,7 +239,7 @@ end
 # trigger a stop command on the minecraft server, and then gracefully shut down
 # the droplet. After 20 seconds have passed the droplet is destroyed, along with
 # any files not stored on the server data volume.
-bot.command(:stop, chain_usable: false, description: "Stops the currently running server.") do |event|
+bot.command(:stop, description: "Stops the currently running server.") do |event|
     
     unless isRunning
         return "No servers are currently running."
@@ -253,8 +265,10 @@ bot.command(:stop, chain_usable: false, description: "Stops the currently runnin
 end
 
 # Sends a restart command to the droplet. This is useful for when the Minecraft
-# server crashes.
-# TODO - Fix the startup script not being run when the droplet boots back up.
+# server crashes. The startup script defines a cron job that will handle
+# starting the server again on boot. It's better to use /reset vs using
+# /stop and then /start on crash because digital ocean bills for 1 hour
+# at minimum if you destroy a droplet.
 bot.command :reset do |event|
     
     unless isRunning
@@ -262,20 +276,31 @@ bot.command :reset do |event|
     end
     
     event.respond("Resetting server instance...")
-    bot.update_status("away", "Server Reset in Progress...", nil, 0, false, 3)
+    bot.update_status("idle", "Server Reset in Progress...", nil, 0, false, 3)
+    
+    job = scheduler.job(autoShutdownJobID)
+    job.pause
     
     doclient.droplets.all(tag_name: "minecraft-bot").each {
         |x|
         doclient.droplet_actions.reboot(droplet_id: x.id)
     }
-    sleep(30)
-    bot.update_status("online", "0 Players Online", nil, 0, false, 3)
+    while true
+       msClient = MineStat.new("#{serverIP}", 25565)
+       if msClient.online
+           bot.update_status("online", "#{msClient.current_players}/#{msClient.max_players} Players Online", nil, 0, false, 3)
+           break
+       end
+       sleep(45)
+    end
+    
+    job.resume
     
     return nil
 end
 
 # Pings the minecraft server and returns the player count and MOTD.
-bot.command(:status, chain_usable: false, description: "Displays server player count and MOTD.") do |event|
+bot.command(:status, description: "Displays server player count and MOTD.") do |event|
     
     unless isRunning
         return "No servers are currently running."
@@ -290,14 +315,14 @@ bot.command(:status, chain_usable: false, description: "Displays server player c
     event.channel.send_embed do |embed|
       embed.title = "#{msClient.current_players}/#{msClient.max_players} Players Online"
       embed.colour = 0x7ed321
-      embed.description = "#{msClient.motd}"
+      embed.description = "Minecraft Version: #{msClient.version}\n#{msClient.stripped_motd}"
 
     end
     return nil
 end
 
 # Polls the DigitalOcean API for server volume names and returns them in chat
-bot.command(:servers, chain_usable: false, description: "Displays all available server volumes.") do |event|
+bot.command(:servers, description: "Displays all available server volumes.") do |event|
    
    response = ""
    doclient.volumes.all.each {
