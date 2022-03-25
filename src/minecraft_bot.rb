@@ -1,15 +1,16 @@
 # This bot manages a specified Minecraft server hosted on DigitalOcean.
 require 'discordrb'
 require 'droplet_kit'
+require 'json'
 require 'minestat'
 require 'rufus-scheduler'
 require_relative 'do_integrator'
 require_relative 'config_manager'
 
-DISCORD_API_TOKEN_FILE_NAME = "config/token_discord.txt"
+DISCORD_API_TOKEN_FILE_NAME = "config/token_discord.json"
 
 # The default string in token.txt when the user has not yet added their custom token
-TOKEN_NOT_FOUND = "token=INSERT DISCORD BOT TOKEN HERE"
+TOKEN_NOT_FOUND = "{\n    \"token\": \"INSERT DISCORD TOKEN HERE\"\n}"
 
 # Specifies whether there is currently a server online
 isRunning = false
@@ -45,7 +46,7 @@ if !File.exist?(DISCORD_API_TOKEN_FILE_NAME)
     puts("\n------------------------------------------------------------")
     puts("A file has been created to store your bot's Discord API token.")
     puts("This token can be found within your Discord Dev Portal.")
-    puts("Please insert it into token.txt before continuing")
+    puts("Please insert it into config/token_discord.json before continuing")
     puts("------------------------------------------------------------")
     return
 end
@@ -59,7 +60,7 @@ if token == TOKEN_NOT_FOUND
     puts("------------------------------------------------------------")
     return
 end
-token = token[6..token.length]
+token = JSON.parse(token)["token"]
 
 # Creates the bot with a token/application ID generated from your Discord
 # Developer Portal.

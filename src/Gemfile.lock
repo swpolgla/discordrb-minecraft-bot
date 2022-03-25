@@ -1,4 +1,7 @@
 GEM
+  specs:
+
+GEM
   remote: https://rubygems.org/
   specs:
     addressable (2.8.0)
@@ -105,4 +108,4 @@ DEPENDENCIES
   rufus-scheduler!
 
 BUNDLED WITH
-   1.17.3
+   2.3.10
