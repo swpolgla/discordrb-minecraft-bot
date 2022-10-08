@@ -24,10 +24,8 @@ Install ruby from https://www.ruby-lang.org/en/downloads/ or by using your packa
 I won't provide instructions on how to install it or set it up.
 You'll need the full or dev versions of ruby. On Ubuntu the package is labeled as `ruby-full`
 Additionally, you'll need to install bundler to install dependencies. On Ubuntu the package is labeled as `bundler`
-I've personally used Ruby 2.6.3 while developing the bot, however anything newer than 2.5 should work fine.
-If anything newer *doesn't* work, please let me know!
-
-The version provided with newer versions of MacOS is sufficient.
+I've personally used Ruby 3.1.2 while developing the bot, however anything newer than 2.5 should work fine.
+The project uses version 2.3.22 of Bundler, but you can edit the gemfile.lock if you need to make it work with an older version.
 
 Once you've got ruby installed, it should be as simple as running `start.sh`
 
